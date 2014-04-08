@@ -22,6 +22,10 @@ use std::str;
 use std::ascii::StrAsciiExt;
 use std::mem::replace;
 
+use time::precise_time_ns;
+
+use collections::hashmap::HashMap;
+
 pub mod states;
 mod tokens;
 mod char_ref;
@@ -128,6 +132,8 @@ pub struct Tokenizer<'sink, Sink> {
 
     /// The "temporary buffer" mentioned in the spec.
     priv temp_buf: ~str,
+
+    priv state_profile: HashMap<states::State, u64>,
 }
 
 impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
@@ -153,6 +159,7 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
             current_doctype: Doctype::new(),
             last_start_tag_name: start_tag_name,
             temp_buf: ~"",
+            state_profile: HashMap::new(),
         }
     }
 
@@ -270,7 +277,15 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
 
     // Run the state machine for as long as we can.
     fn run(&mut self) {
-        while self.step() {
+        loop {
+            let s = self.state;
+            let t0 = precise_time_ns();
+            let r = self.step();
+            let dt = precise_time_ns() - t0;
+
+            self.state_profile.insert_or_update_with(s, dt, |_, x| *x += dt);
+
+            if !r { break; }
         }
     }
 
@@ -1034,6 +1049,11 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
 
         while self.eof_step() {
             // loop
+        }
+
+        println!("");
+        for (&k, &v) in self.state_profile.iter() {
+            println!("{:12u} {:?}", v, k);
         }
     }
 
