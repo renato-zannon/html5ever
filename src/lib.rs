@@ -22,6 +22,7 @@ extern crate time;
 
 mod util {
     pub mod str;
+    pub mod atom;
 }
 
 pub mod tokenizer;
