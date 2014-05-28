@@ -194,6 +194,10 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
         self.open_elems = new_elems;
     }
 
+    fn reconstruct_formatting(&mut self) {
+        warn!("FIXME: not implemented");
+    }
+
     fn create_root(&mut self, attrs: Vec<Attribute>) {
         let elem = self.sink.create_element(HTML, atom!(html), attrs);
         self.push(&elem);
@@ -461,8 +465,25 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 }
             },
 
-              states::InBody
-            | states::Text
+            states::InBody => match token {
+                NullCharacterToken => {
+                    self.sink.parse_error("Null character in InBody mode".to_string());
+                    Done
+                }
+                CharacterTokens(_, text) => {
+                    self.reconstruct_formatting();    
+                    if self.frameset_ok && text.as_slice().iter().any(|c| !is_ascii_whitespace(c)) {
+                        self.frameset_ok = false;
+                    }
+                    append_text!(self.target(), text)
+                }
+                CommentToken(text) => append_comment!(self.target(), text),
+                token if
+                    start_named!(token, base basefont bgsound link meta noframes script style template title)
+                    || end_named!(token, template) => self.step(states::InHead, token),
+            },
+
+              states::Text
             | states::InTable
             | states::InTableText
             | states::InCaption
