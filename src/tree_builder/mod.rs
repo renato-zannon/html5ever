@@ -310,13 +310,12 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                     self.mode = states::InHead;
                     Done
                 }
-                token => if start_named!(token, html) {
-                    // Do this here because we can't move out of `token` when it's borrowed.
-                    self.step(states::InBody, token)
-                } else {
+                // Do this here because we can't move out of `token` when it's borrowed.
+                token if start_named!(token, html) => self.step(states::InBody, token),
+                token => {
                     self.head_elem = Some(self.create_element(atom!(head), vec!()));
                     Reprocess(states::InHead, token)
-                },
+                }
             },
 
             states::InHead => match token {
@@ -379,13 +378,11 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                         true
                     }
                 }) => Done,
-                token => if start_named!(token, html) {
-                    // Do this here because we can't move out of `token` when it's borrowed.
-                    self.step(states::InBody, token)
-                } else {
+                token if start_named!(token, html) => self.step(states::InBody, token),
+                token {
                     self.pop();
                     Reprocess(states::AfterHead, token)
-                },
+                }
             },
 
             states::InHeadNoscript => match token {
@@ -410,15 +407,15 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
 
                 token @ CommentToken(_) => self.step(states::InHead, token),
 
-                token => if start_named!(token, html) {
-                    self.step(states::InBody, token)
-                } else if start_named!(token, basefont bgsound link meta noframes style) {
-                    self.step(states::InHead, token)
-                } else {
+                token if start_named!(token, html)
+                    => self.step(states::InBody, token),
+                token if start_named!(token, basefont bgsound link meta noframes style)
+                    => self.step(states::InHead, token),
+                token => {
                     self.sink.parse_error(format!("Unexpected token in InHeadNoscript mode: {}", token));
                     self.pop();
                     Reprocess(states::InHead, token)
-                },
+                }
             },
 
             states::AfterHead => match token {
