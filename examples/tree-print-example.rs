@@ -30,6 +30,10 @@ impl TreeSink<uint> for Sink {
         0
     }
 
+    fn same_elem(&mut self, x: uint, y: uint) -> bool {
+        x == y
+    }
+
     fn set_quirks_mode(&mut self, mode: QuirksMode) {
         println!("Set quirks mode to {:?}", mode);
     }

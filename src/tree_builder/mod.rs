@@ -90,6 +90,9 @@ pub struct TreeBuilder<'sink, Handle, Sink> {
 
     /// Next state change for the tokenizer, if any.
     next_tokenizer_state: Option<tokenizer::states::State>,
+
+    /// Frameset-ok flag.
+    frameset_ok: bool,
 }
 
 // We use guards, so we can't bind tags by move.  Instead, bind by ref
@@ -154,6 +157,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
             open_elems: vec!(),
             head_elem: None,
             next_tokenizer_state: None,
+            frameset_ok: true,
         }
     }
 
@@ -180,6 +184,13 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
 
     fn pop(&mut self) -> Handle {
         self.open_elems.pop().expect("no current element")
+    }
+
+    fn remove_from_stack(&mut self, elem: Handle) {
+        let new_elems = self.open_elems.iter().filter(
+            |x| !self.sink.same_elem(x, elem)).collect();
+        assert!(new_elems.len() + 1 == self.open_elems.len())
+        self.open_elems = new_elems;
     }
 
     fn create_root(&mut self, attrs: Vec<Attribute>) {
@@ -410,8 +421,49 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 },
             },
 
-              states::AfterHead
-            | states::InBody
+            states::AfterHead => match token {
+                CharacterTokens(NotSplit, text) => Split(KeepWhitespace, text),
+                CharacterTokens(Whitespace, text) => append_text!(self.target(), text),
+                CommentToken(text) => append_comment!(self.target(), text),
+                token if start_named!(token,
+                        base basefont bgsound link meta noframes script style template title) => {
+                    self.sink.parse_error(format!("Unexpected start tag in AfterHead mode: {}", t));
+                    let head = self.head_elem.as_ref().expect("No head element").clone();
+                    self.push(head);
+                    let result = self.step(states::InHead, token);
+                    self.remove_from_stack(head);
+                    result
+                }
+                token if end_named!(token, template) => self.step(states::InHead, token),
+                start!(t) if match_atom!(t.name {
+                    html => false,
+                    body => {
+                        self.create_element_for(t);
+                        self.frameset_ok = false;
+                        self.mode = states::InBody;
+                        true
+                    }
+                    frameset => {
+                        self.create_element_for(t);
+                        self.mode = states::InFrameset;
+                        true
+                    }
+                    head => {
+                        self.sink.parse_error(format!("Unexpected start tag in AfterHead mode: {}", t));
+                        true
+                    }
+                }) => Done,
+                end!(t) if !named!(t, body html br) => {
+                    self.sink.parse_error(format!("Unexpected end tag in AfterHead mode: {}", t));
+                    true
+                }
+                token => {
+                    self.create_element(atom!(body), vec!());
+                    Reprocess(states::InBody, token)
+                }
+            },
+
+              states::InBody
             | states::Text
             | states::InTable
             | states::InTableText
