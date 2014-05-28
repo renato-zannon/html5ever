@@ -40,6 +40,7 @@ enum Token {
     TagToken(Tag),
     CommentToken(String),
     CharacterTokens(SplitStatus, String),
+    NullCharacterToken,
     EOFToken,
 }
 
@@ -514,6 +515,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TokenSink for TreeBuilder<'si
             tokenizer::TagToken(x) => TagToken(x),
             tokenizer::CommentToken(x) => CommentToken(x),
             tokenizer::CharacterTokens(x) => CharacterTokens(NotSplit, x),
+            tokenizer::NullCharacterToken => NullCharacterToken,
             tokenizer::EOFToken => EOFToken,
         };
 
