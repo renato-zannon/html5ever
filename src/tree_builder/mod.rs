@@ -187,9 +187,11 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
         self.open_elems.pop().expect("no current element")
     }
 
-    fn remove_from_stack(&mut self, elem: Handle) {
-        let new_elems = self.open_elems.iter().filter(
-            |x| !self.sink.same_elem(x, elem)).collect();
+    fn remove_from_stack(&mut self, elem: &Handle) {
+        let new_elems: Vec<Handle> = self.open_elems.iter()
+            .filter(|&x| !self.sink.same_elem(x.clone(), elem.clone()))
+            .map(|x| x.clone())
+            .collect();
         assert!(new_elems.len() + 1 == self.open_elems.len())
         self.open_elems = new_elems;
     }
@@ -315,12 +317,13 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                     self.mode = states::InHead;
                     Done
                 }
-                // Do this here because we can't move out of `token` when it's borrowed.
-                token if start_named!(token, html) => self.step(states::InBody, token),
-                token => {
+                token => if start_named!(token, html) {
+                    // Do this here because we can't move out of `token` when it's borrowed.
+                    self.step(states::InBody, token)
+                } else {
                     self.head_elem = Some(self.create_element(atom!(head), vec!()));
                     Reprocess(states::InHead, token)
-                }
+                },
             },
 
             states::InHead => match token {
@@ -383,11 +386,13 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                         true
                     }
                 }) => Done,
-                token if start_named!(token, html) => self.step(states::InBody, token),
-                token {
+                token => if start_named!(token, html) {
+                    // Do this here because we can't move out of `token` when it's borrowed.
+                    self.step(states::InBody, token)
+                } else {
                     self.pop();
                     Reprocess(states::AfterHead, token)
-                }
+                },
             },
 
             states::InHeadNoscript => match token {
@@ -412,15 +417,15 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
 
                 token @ CommentToken(_) => self.step(states::InHead, token),
 
-                token if start_named!(token, html)
-                    => self.step(states::InBody, token),
-                token if start_named!(token, basefont bgsound link meta noframes style)
-                    => self.step(states::InHead, token),
-                token => {
+                token => if start_named!(token, html) {
+                    self.step(states::InBody, token)
+                } else if start_named!(token, basefont bgsound link meta noframes style) {
+                    self.step(states::InHead, token)
+                } else {
                     self.sink.parse_error(format!("Unexpected token in InHeadNoscript mode: {}", token));
                     self.pop();
                     Reprocess(states::InHead, token)
-                }
+                },
             },
 
             states::AfterHead => match token {
@@ -429,11 +434,11 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 CommentToken(text) => append_comment!(self.target(), text),
                 token if start_named!(token,
                         base basefont bgsound link meta noframes script style template title) => {
-                    self.sink.parse_error(format!("Unexpected start tag in AfterHead mode: {}", t));
+                    self.sink.parse_error(format!("Unexpected start tag in AfterHead mode: {}", token));
                     let head = self.head_elem.as_ref().expect("No head element").clone();
-                    self.push(head);
+                    self.push(&head);
                     let result = self.step(states::InHead, token);
-                    self.remove_from_stack(head);
+                    self.remove_from_stack(&head);
                     result
                 }
                 token if end_named!(token, template) => self.step(states::InHead, token),
@@ -457,7 +462,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 }) => Done,
                 end!(t) if !named!(t, body html br) => {
                     self.sink.parse_error(format!("Unexpected end tag in AfterHead mode: {}", t));
-                    true
+                    Done
                 }
                 token => {
                     self.create_element(atom!(body), vec!());
@@ -472,7 +477,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 }
                 CharacterTokens(_, text) => {
                     self.reconstruct_formatting();    
-                    if self.frameset_ok && text.as_slice().iter().any(|c| !is_ascii_whitespace(c)) {
+                    if self.frameset_ok && text.as_slice().chars().any(|c| !is_ascii_whitespace(c)) {
                         self.frameset_ok = false;
                     }
                     append_text!(self.target(), text)
