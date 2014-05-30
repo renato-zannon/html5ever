@@ -459,6 +459,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                         self.sink.parse_error(format!("Unexpected start tag in AfterHead mode: {}", t));
                         true
                     }
+                    _ => false,
                 }) => Done,
                 end!(t) if !named!(t, body html br) => {
                     self.sink.parse_error(format!("Unexpected end tag in AfterHead mode: {}", t));
@@ -486,6 +487,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                 token if
                     start_named!(token, base basefont bgsound link meta noframes script style template title)
                     || end_named!(token, template) => self.step(states::InHead, token),
+                _ => fail!("not implemented"),
             },
 
               states::Text
