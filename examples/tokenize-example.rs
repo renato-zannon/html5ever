@@ -81,7 +81,7 @@ fn main() {
             profile: true,
             .. Default::default()
         });
-        tok.feed(io::stdin().read_to_str().unwrap().into_strbuf());
+        tok.feed(io::stdin().read_to_str().unwrap().into_string());
         tok.end();
     }
     sink.is_char(false);

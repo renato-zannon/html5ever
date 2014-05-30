@@ -75,6 +75,6 @@ fn main() {
     let mut tb  = TreeBuilder::new(&mut sink, Default::default());
     let mut tok = Tokenizer::new(&mut tb, Default::default());
 
-    tok.feed(io::stdin().read_to_str().unwrap().into_strbuf());
+    tok.feed(io::stdin().read_to_str().unwrap().into_string());
     tok.end();
 }

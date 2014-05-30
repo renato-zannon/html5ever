@@ -341,10 +341,10 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
             }
             EndTag => {
                 if !self.current_tag_attrs.is_empty() {
-                    self.emit_error("Attributes on an end tag".to_owned());
+                    self.emit_error("Attributes on an end tag".to_string());
                 }
                 if self.current_tag_self_closing {
-                    self.emit_error("Self-closing end tag".to_owned());
+                    self.emit_error("Self-closing end tag".to_string());
                 }
             }
         }
@@ -422,7 +422,7 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
         };
 
         if dup {
-            self.emit_error("Duplicate attribute".to_owned());
+            self.emit_error("Duplicate attribute".to_string());
             self.current_attr_name.truncate(0);
             self.current_attr_value.truncate(0);
         } else {
@@ -1182,19 +1182,19 @@ impl<'sink, Sink: TokenSink> Tokenizer<'sink, Sink> {
 fn push_to_None_gives_singleton() {
     let mut s: Option<String> = None;
     option_push_char(&mut s, 'x');
-    assert_eq!(s, Some("x".to_strbuf()));
+    assert_eq!(s, Some("x".to_string()));
 }
 
 #[test]
 fn push_to_empty_appends() {
     let mut s: Option<String> = Some(String::new());
     option_push_char(&mut s, 'x');
-    assert_eq!(s, Some("x".to_strbuf()));
+    assert_eq!(s, Some("x".to_string()));
 }
 
 #[test]
 fn push_to_nonempty_appends() {
-    let mut s: Option<String> = Some("y".to_strbuf());
+    let mut s: Option<String> = Some("y".to_string());
     option_push_char(&mut s, 'x');
-    assert_eq!(s, Some("yx".to_strbuf()));
+    assert_eq!(s, Some("yx".to_string()));
 }

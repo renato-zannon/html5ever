@@ -28,7 +28,7 @@ impl Atom {
     pub fn from_str(s: &str) -> Atom {
         match static_atom_map.find(&s) {
             Some(&k) => Static(k),
-            None => Owned(s.to_strbuf()),
+            None => Owned(s.to_string()),
         }
     }
 
@@ -92,23 +92,23 @@ impl Str for Atom {
 }
 
 impl StrAllocating for Atom {
-    fn into_owned(self) -> String {
+    fn into_string(self) -> String {
         match self {
-            Static(i) => get_static(i).to_owned(),
-            Owned(s) => s.into_owned(),
+            Static(i) => get_static(i).to_string(),
+            Owned(s) => s.into_string(),
         }
     }
 
-    fn to_strbuf(&self) -> String {
+    fn to_string(&self) -> String {
         match *self {
-            Static(i) => get_static(i).to_strbuf(),
+            Static(i) => get_static(i).to_string(),
             Owned(ref s) => s.clone(),
         }
     }
 
-    fn into_strbuf(self) -> String {
+    fn into_owned(self) -> String {
         match self {
-            Static(i) => get_static(i).to_strbuf(),
+            Static(i) => get_static(i).to_string(),
             Owned(s) => s,
         }
     }
@@ -156,29 +156,29 @@ fn as_slice() {
 }
 
 #[test]
-fn into_owned() {
-    assert_eq!(Atom::from_str("").into_owned(), "".to_owned());
-    assert_eq!(Atom::from_str("body").into_owned(), "body".to_owned());
-    assert_eq!(Atom::from_str("asdfghjk").into_owned(), "asdfghjk".to_owned());
+fn into_string() {
+    assert_eq!(Atom::from_str("").into_string(), "".to_string());
+    assert_eq!(Atom::from_str("body").into_string(), "body".to_string());
+    assert_eq!(Atom::from_str("asdfghjk").into_string(), "asdfghjk".to_string());
 }
 
 #[test]
-fn to_strbuf() {
-    assert_eq!(Atom::from_str("").to_strbuf(), "".to_strbuf());
-    assert_eq!(Atom::from_str("body").to_strbuf(), "body".to_strbuf());
-    assert_eq!(Atom::from_str("asdfghjk").to_strbuf(), "asdfghjk".to_strbuf());
+fn to_string() {
+    assert_eq!(Atom::from_str("").to_string(), "".to_string());
+    assert_eq!(Atom::from_str("body").to_string(), "body".to_string());
+    assert_eq!(Atom::from_str("asdfghjk").to_string(), "asdfghjk".to_string());
 }
 
 #[test]
-fn into_strbuf() {
-    assert_eq!(Atom::from_str("").into_strbuf(), "".to_strbuf());
-    assert_eq!(Atom::from_str("body").into_strbuf(), "body".to_strbuf());
-    assert_eq!(Atom::from_str("asdfghjk").into_strbuf(), "asdfghjk".to_strbuf());
+fn into_string() {
+    assert_eq!(Atom::from_str("").into_string(), "".to_string());
+    assert_eq!(Atom::from_str("body").into_string(), "body".to_string());
+    assert_eq!(Atom::from_str("asdfghjk").into_string(), "asdfghjk".to_string());
 }
 
 #[test]
 fn take_from_buf_interned() {
-    let mut b = "body".to_strbuf();
+    let mut b = "body".to_string();
     let a = Atom::take_from_buf(&mut b);
     assert_eq!(a, Atom::from_str("body"));
     assert_eq!(b, String::new());
@@ -186,7 +186,7 @@ fn take_from_buf_interned() {
 
 #[test]
 fn take_from_buf_not_interned() {
-    let mut b = "asdfghjk".to_strbuf();
+    let mut b = "asdfghjk".to_string();
     let a = Atom::take_from_buf(&mut b);
     assert_eq!(a, Atom::from_str("asdfghjk"));
     assert_eq!(b, String::new());

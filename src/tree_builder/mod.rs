@@ -256,7 +256,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                         .map(|(m, b)| CharacterTokens(match m {
                             true => Whitespace,
                             false => NotWhitespace,
-                        }, b.to_strbuf()));
+                        }, b.to_string()));
 
                     token = it.next().expect("Empty Runs iterator");
 
@@ -368,7 +368,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TreeBuilder<'sink, Handle, Si
                     }
                     template => fail!("FIXME: <template> not implemented"),
                     head => {
-                        self.sink.parse_error("<head> in insertion mode InHead".to_owned());
+                        self.sink.parse_error("<head> in insertion mode InHead".to_string());
                         true
                     }
                     _ => false,

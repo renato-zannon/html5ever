@@ -15,6 +15,9 @@
 #[phase(syntax, link)]
 extern crate log;
 
+#[phase(syntax, link)]
+extern crate debug;
+
 #[phase(syntax)]
 extern crate phf_mac;
 
