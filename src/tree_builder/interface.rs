@@ -10,11 +10,12 @@
 //! The interface for consumers of the tree builder (and thus the
 //! parser overall).
 
-use util::atom::Atom;
 use util::namespace::Namespace;
 use tokenizer::Attribute;
 
 use std::str::MaybeOwned;
+
+use string_cache::Atom;
 
 /// A document's quirks mode.
 #[deriving(PartialEq, Eq, Clone, Hash, Show)]

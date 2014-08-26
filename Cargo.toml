@@ -9,6 +9,13 @@ git = "https://github.com/sfackler/rust-phf"
 [dependencies.phf_mac]
 git = "https://github.com/sfackler/rust-phf"
 
+[dependencies.string_cache]
+git = "file:///home/keegan/string-cache"
+rev = "cargo"
+[dependencies.string_cache_macros]
+git = "file:///home/keegan/string-cache"
+rev = "cargo"
+
 [dependencies.html5ever-macros]
 path = "macros"
 

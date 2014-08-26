@@ -9,10 +9,11 @@
 
 use tokenizer::AttrName;
 use util::namespace::{Namespace, HTML};
-use util::atom::Atom;
 
 use std::io::{Writer, IoResult};
 use std::default::Default;
+
+use string_cache::Atom;
 
 //§ serializing-html-fragments
 pub trait Serializable {

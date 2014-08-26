@@ -14,7 +14,6 @@
 
 use sink::common::{NodeEnum, Document, Doctype, Text, Comment, Element};
 
-use util::atom::Atom;
 use util::namespace::{Namespace, HTML};
 use tokenizer::Attribute;
 use tree_builder::{TreeSink, QuirksMode, NodeOrText, AppendNode, AppendText};
@@ -27,6 +26,8 @@ use std::cell::RefCell;
 use std::default::Default;
 use std::io::IoResult;
 use std::str::MaybeOwned;
+
+use string_cache::Atom;
 
 /// A DOM node.
 pub struct Node {

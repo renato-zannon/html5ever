@@ -7,8 +7,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use util::atom::Atom;
 use tokenizer::Attribute;
+
+use string_cache::Atom;
 
 /// The different kinds of nodes in the DOM.
 #[deriving(Show)]

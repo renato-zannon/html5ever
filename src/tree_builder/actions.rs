@@ -20,7 +20,6 @@ use tree_builder::rules::TreeBuilderStep;
 use tokenizer::{Attribute, Tag};
 use tokenizer::states::{RawData, RawKind};
 
-use util::atom::Atom;
 use util::namespace::{Namespace, HTML};
 use util::str::to_escaped_string;
 
@@ -30,6 +29,8 @@ use std::iter::{Rev, Enumerate};
 use std::slice;
 use std::str::Slice;
 use std::fmt::Show;
+
+use string_cache::Atom;
 
 pub struct ActiveFormattingIter<'a, Handle> {
     iter: Rev<Enumerate<slice::Items<'a, FormatEntry<Handle>>>>,

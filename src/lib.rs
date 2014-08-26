@@ -23,12 +23,15 @@ extern crate debug;
 extern crate phf_mac;
 
 #[phase(plugin)]
+extern crate string_cache_macros;
+extern crate string_cache;
+
+#[phase(plugin)]
 extern crate macros = "html5ever-macros";
 
 extern crate phf;
 extern crate time;
 
-pub use util::atom::Atom;
 pub use util::namespace::Namespace;
 
 pub use driver::{one_input, ParseOpts, parse_to, parse};
@@ -38,7 +41,6 @@ mod util {
     #![macro_escape]
 
     pub mod str;
-    pub mod atom;
     pub mod namespace;
     pub mod smallcharset;
 }

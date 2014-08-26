@@ -7,11 +7,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use util::atom::Atom;
 use tokenizer::states;
 
 use std::string::String;
 use std::str::MaybeOwned;
+
+use string_cache::Atom;
 
 /// A `DOCTYPE` token.
 // FIXME: already exists in Servo DOM
