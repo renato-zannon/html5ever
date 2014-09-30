@@ -266,7 +266,7 @@ impl<'sink, Handle: Clone, Sink: TreeSink<Handle>> TokenSink for TreeBuilder<'si
 
             tokenizer::CharacterTokens(mut x) => {
                 if ignore_lf && x.len() >= 1 && x.as_slice().char_at(0) == '\n' {
-                    x.remove(0);
+                    x.shift_char();
                 }
                 if x.is_empty() {
                     return;
